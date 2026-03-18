@@ -1,0 +1,66 @@
+.users {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.users-head {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.users .section-title {
+  color: var(--primary);
+  margin-bottom: 0;
+  font-size: 1.85rem;
+}
+
+.users .section-tagline {
+  margin-top: 0.5rem;
+}
+
+.users-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.user-card {
+  border: 1px solid var(--secondary);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  background: var(--light-bg);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s;
+  animation: slideUp 0.55s var(--ease-out-expo) both;
+}
+
+.user-card:nth-child(1) { animation-delay: 0.05s; }
+.user-card:nth-child(2) { animation-delay: 0.1s; }
+.user-card:nth-child(3) { animation-delay: 0.15s; }
+.user-card:nth-child(4) { animation-delay: 0.2s; }
+.user-card:nth-child(5) { animation-delay: 0.25s; }
+.user-card:nth-child(n+6) { animation-delay: 0.3s; }
+
+.user-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.user-card h3 {
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.user-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.users .error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: var(--primary-dark);
+}

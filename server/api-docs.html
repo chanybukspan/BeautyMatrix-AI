@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>תיעוד API - פרויקט Node.js</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        h2 { margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+        th { background-color: #f4f4f4; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .method { font-weight: bold; color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>תיעוד ה-Rest API של השרת</h1>
+
+    <h2>מוצרי איפור (MakeUp Products)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>סוג פעולה</th>
+                <th>כתובת URL</th>
+                <th>פרמטרים בנתיב</th>
+                <th>גוף הבקשה (Body)</th>
+                <th>מה עושה?</th>
+                <th>מי יכול להשתמש?</th>
+                <th>איזה סוגי שגיאות עלולות לחזור?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="method">GET</td>
+                <td>/api/product</td>
+                <td>-</td>
+                <td>-</td>
+                <td>מחזירה את כל המוצרים עם pagination</td>
+                <td>כולם</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td class="method">GET</td>
+                <td>/api/product/:id</td>
+                <td>id</td>
+                <td>-</td>
+                <td>מחזירה מוצר לפי id</td>
+                <td>כולם</td>
+                <td>
+                    <li>ID אינו תקין</li>
+                    <li>ID אינו קיים (404)</li> 
+                </td>
+            </tr>
+            <tr>
+                <td class="method">POST</td>
+                <td>/api/product</td>
+                <td>-</td>
+                <td>makeupName, brand, category, imageUrl, price</td>
+                <td>מוסיפה מוצר חדש</td>
+                <td>מנהל בלבד</td>
+                <td>
+                    <li>חסרים פרטים (makeupName, brand, category, imageUrl, price)</li>
+                    <li>נדרש אימות מנהל</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">PUT</td>
+                <td>/api/product/:id</td>
+                <td>id</td>
+                <td>makeupName, brand, category, imageUrl, price, description, inStock</td>
+                <td>מעדכנת מוצר לפי id</td>
+                <td>מנהל בלבד</td>
+                <td>
+                    <li>ID אינו תקין</li>
+                    <li>ID אינו קיים (404)</li>
+                    <li>נדרש אימות מנהל</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">DELETE</td>
+                <td>/api/product/:id</td>
+                <td>id</td>
+                <td>-</td>
+                <td>מוחקת מוצר לפי id</td>
+                <td>מנהל בלבד</td>
+                <td>
+                    <li>ID אינו תקין</li>
+                    <li>ID אינו קיים (404)</li>
+                    <li>נדרש אימות מנהל</li>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>משתמשים (Users)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>סוג פעולה</th>
+                <th>כתובת URL</th>
+                <th>פרמטרים בנתיב</th>
+                <th>גוף הבקשה (Body)</th>
+                <th>מה עושה?</th>
+                <th>מי יכול להשתמש?</th>
+                <th>איזה סוגי שגיאות עלולות לחזור?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="method">POST</td>
+                <td>/api/user/register</td>
+                <td>-</td>
+                <td>userName, email, password</td>
+                <td>רישום משתמש חדש (מחזיר Token)</td>
+                <td>כולם</td>
+                <td>
+                    <li>חסרים פרטים (userName, email, password)</li>
+                    <li>אימייל כבר קיים (409)</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">POST</td>
+                <td>/api/user/login</td>
+                <td>-</td>
+                <td>email או userName, password</td>
+                <td>התחברות משתמש (מחזיר Token)</td>
+                <td>כולם</td>
+                <td>
+                    <li>חסרים פרטים (email/username ו-password)</li>
+                    <li>משתמש לא נמצא (401)</li>
+                    <li>סיסמה לא נכונה (401)</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">GET</td>
+                <td>/api/user</td>
+                <td>-</td>
+                <td>-</td>
+                <td>מחזירה את כל המשתמשים</td>
+                <td>מנהל בלבד</td>
+                <td>
+                    <li>נדרש אימות מנהל</li>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>הזמנות (Orders)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>סוג פעולה</th>
+                <th>כתובת URL</th>
+                <th>פרמטרים בנתיב</th>
+                <th>גוף הבקשה (Body)</th>
+                <th>מה עושה?</th>
+                <th>מי יכול להשתמש?</th>
+                <th>איזה סוגי שגיאות עלולות לחזור?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="method">GET</td>
+                <td>/api/order</td>
+                <td>-</td>
+                <td>-</td>
+                <td>מחזירה את כל ההזמנות של המשתמש המחובר</td>
+                <td>משתמש מחובר</td>
+                <td>
+                    <li>נדרש אימות</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">GET</td>
+                <td>/api/order/all</td>
+                <td>-</td>
+                <td>-</td>
+                <td>מחזירה את כל ההזמנות (מנהל בלבד)</td>
+                <td>מנהל בלבד</td>
+                <td>
+                    <li>נדרש אימות מנהל</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">POST</td>
+                <td>/api/order</td>
+                <td>-</td>
+                <td>address, orderdProducts: [{ productId, name, price, quantity }]</td>
+                <td>מוסיפה הזמנה חדשה</td>
+                <td>משתמש מחובר</td>
+                <td>
+                    <li>חסרים פרטים (address, orderdProducts)</li>
+                    <li>orderdProducts ריק או לא קיים</li>
+                    <li>נדרש אימות</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">PUT</td>
+                <td>/api/order/:id</td>
+                <td>id</td>
+                <td>-</td>
+                <td>מעדכנת סטטוס הזמנה ל-"יצאה לדרך" (isShipped: true)</td>
+                <td>בעלים של ההזמנה או מנהל</td>
+                <td>
+                    <li>ID אינו תקין</li>
+                    <li>ID אינו קיים (404)</li>
+                    <li>נדרש אימות - בעלים של ההזמנה או מנהל</li>
+                </td>
+            </tr>
+            <tr>
+                <td class="method">DELETE</td>
+                <td>/api/order/:id</td>
+                <td>id</td>
+                <td>-</td>
+                <td>מוחקת הזמנה (רק אם לא נשלחה)</td>
+                <td>מנהל בלבד</td>
+                <td>
+                    <li>ID אינו תקין</li>
+                    <li>ID אינו קיים (404)</li>
+                    <li>אם ההזמנה כבר נשלחה - לא ניתן למחוק (400)</li>
+                    <li>נדרש אימות מנהל</li>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,20 +1,27 @@
-import mongoose from "mongoose";
+import { Schema, model } from 'mongoose';
 
-const minimalProductSchema = new mongoose.Schema({
-    productId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    name: { type: String, required: true, trim: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true, min: 1 }
-}, { _id: false });
+const orderSchema = new Schema({
+    user: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'User', 
+        required: [true, 'Order must belong to a user'] 
+    },
+    products: [{
+        product: { 
+            type: Schema.Types.ObjectId, 
+            ref: 'Product', 
+            required: true 
+        },
+        quantity: { type: Number, default: 1 }
+    }],
+    totalPrice: { type: Number, required: true },
+    shippingAddress: { type: String, required: true },
+    phone: { type: String, required: true },
+    status: { 
+        type: String, 
+        enum: ['pending', 'shipped', 'delivered', 'cancelled'], 
+        default: 'pending' 
+    }
+}, { timestamps: true });
 
-const orderSchema = new mongoose.Schema({
-    orderDate: { type: Date, required: true },
-    deadLine: { type: Date, required: true },
-    address: { type: String, required: true, trim: true, lowerCase: true },
-    code: { type: String, required: true },
-    orderdProducts: { type: [minimalProductSchema], required: true },
-    isShipped: { type: Boolean, default: false },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-});
-
-export default mongoose.model('Order', orderSchema);
+export const orderModel = model('Order', orderSchema);

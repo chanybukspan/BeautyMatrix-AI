@@ -1,108 +1,90 @@
-import { userModel } from "../models/user.js";
+import asyncHandler from 'express-async-handler';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { userSchema } from "../validators/userValidator.js"; 
+import { userModel } from "../models/user.js";
+import { AppError } from "../utils/appError.js";
 
 // 1. כניסת משתמש (Login)
-export const loginUser = async (req, res, next) => { // הוספנו next
-    try {
-        const { email, userName, password } = req.body;
+export const loginUser = asyncHandler(async (req, res, next) => {
+    const { email, userName, password } = req.body;
 
-        // בדיקה בסיסית (אפשר גם כאן להשתמש ב-Joi אם רוצים)
-        if ((!email && !userName) || !password) {
-            const err = new Error("חובה להזין מייל/שם משתמש וסיסמה");
-            err.statusCode = 400;
-            return next(err);
-        }
+    // חיפוש המשתמש לפי מייל או שם משתמש
+    const user = await userModel.findOne({ 
+        $or: [
+            { email: email?.toLowerCase() }, 
+            { userName: userName }
+        ] 
+    }).select('+password'); // וודאי שבמודל הסיסמה מוגדרת כ-select: false להגנה
 
-        const user = await userModel.findOne({ $or: [{ email }, { userName }] });
-        if (!user) {
-            const err = new Error("משתמש לא נמצא");
-            err.statusCode = 401;
-            return next(err);
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            const err = new Error("סיסמה שגויה");
-            err.statusCode = 401;
-            return next(err);
-        }
-
-        const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
-            process.env.JWT_SECRET || 'your-secret-key',
-            { expiresIn: '7d' }
-        );
-
-        const userData = user.toObject();
-        delete userData.password;
-
-        res.json({
-            success: true,
-            message: "התחברת בהצלחה",
-            user: userData,
-            token: token
-        });
-    } catch (err) {
-        next(err); // עובר ל-errorMiddleware
+    if (!user) {
+        return next(new AppError('Invalid login credentials', 401));
     }
-};
 
-// 2. קבלת כל המשתמשים (לשימוש אדמין)
-export const getAllUsers = async (req, res, next) => { // הוספנו next
-    try {
-        const users = await userModel.find().select("-password");
-        res.json(users);
-    } catch (err) {
-        next(err);
+    // בדיקת סיסמה
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return next(new AppError('Invalid login credentials', 401));
     }
-};
 
-// 3. הרשמת משתמש חדש (Register)
-export const registerUser = async (req, res, next) => {
-    try {
-        // אימות Joi
-        const { error } = userSchema.validate(req.body);
-        if (error) {
-            const validationError = new Error(error.details[0].message);
-            validationError.statusCode = 400;
-            validationError.title = "Validation Error";
-            return next(validationError);
-        }
+    // יצירת Token
+    const token = jwt.sign(
+        { id: user._id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '7d' }
+    );
 
-        const { userName, email, password, role } = req.body;
-        
-        const alreadyExists = await userModel.findOne({ email });
-        if (alreadyExists) {
-            const conflictError = new Error("משתמש עם כתובת מייל זו כבר קיים במערכת");
-            conflictError.statusCode = 409;
-            return next(conflictError);
-        }
+    // הסרת הסיסמה מהאובייקט לפני החזרה
+    const userData = user.toObject();
+    delete userData.password;
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new userModel({
-            userName,
-            email,
-            password: hashedPassword,
-            role: role || 'user'
-        });
-        
-        await newUser.save();
+    res.json({
+        success: true,
+        message: "Login successful",
+        user: userData,
+        token: token
+    });
+});
 
-        const token = jwt.sign(
-            { id: newUser._id, email: newUser.email, role: newUser.role },
-            process.env.JWT_SECRET || 'your-secret-key',
-            { expiresIn: '7d' }
-        );
+// 2. הרשמת משתמש חדש (Register)
+// בתוך controllers/user.js (גרסה מקוצרת ומקצועית)
+export const registerUser = asyncHandler(async (req, res, next) => {
+    const newUser = await userModel.create({
+        userName: req.body.userName,
+        email: req.body.email,
+        password: req.body.password, // ההצפנה תקרה אוטומטית במודל!
+        role: req.body.role
+    });
 
-        const { password: pw, ...userData } = newUser._doc;
-        res.status(201).json({
-            success: true,
-            user: userData,
-            token: token
-        });
-    } catch (error) {
-        next(error);
+    const token = createToken(newUser._id); // פונקציית עזר ליצירת טוקן
+    
+    res.status(201).json({
+        success: true,
+        token,
+        user: newUser
+    });
+});
+
+// 3. קבלת כל המשתמשים (Admin Only)
+export const getAllUsers = asyncHandler(async (req, res, next) => {
+    const users = await userModel.find().select("-password");
+    res.json({
+        success: true,
+        results: users.length,
+        users
+    });
+});
+
+// 4. קבלת פרטי המשתמש המחובר (Profile)
+export const getCurrentUser = asyncHandler(async (req, res, next) => {
+    // req.user.id מגיע מה-protect middleware
+    const user = await userModel.findById(req.user.id).select("-password");
+    
+    if (!user) {
+        return next(new AppError('User not found', 404));
     }
-};
+    
+    res.json({
+        success: true,
+        user
+    });
+});

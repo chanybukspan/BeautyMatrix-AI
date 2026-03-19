@@ -1,48 +1,53 @@
 import asyncHandler from 'express-async-handler';
 import { AppError } from '../utils/appError.js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { v2 as cloudinary } from 'cloudinary';
 import { productModel } from '../models/product.js';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// קונפיגורציה של Cloudinary (שימי ב-.env שלך)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 export const tryOnProduct = asyncHandler(async (req, res, next) => {
-    const { userImageUrl, productId } = req.body;
+    const { userImageUrl, productId, hexColor } = req.body;
 
     if (!userImageUrl || !productId) {
-        return next(new AppError('User image URL and Product ID are required', 400));
+        return next(new AppError('נתונים חסרים לביצוע הניסוי', 400));
     }
 
-    // שליפת נתוני המוצר כדי שה-AI ידע איזה גוון וקטגוריה להחיל
     const product = await productModel.findById(productId);
-    if (!product) {
-        return next(new AppError('Product not found', 404));
-    }
+    if (!product) return next(new AppError('מוצר לא נמצא', 404));
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // 1. העלאת תמונת המשתמשת ל-Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(userImageUrl, {
+            folder: "user_try_on"
+        });
 
-        // בניית הנחיה (Prompt) מקצועית
-        const prompt = `
-            Task: Virtual Makeup Try-On.
-            Instruction: Take the person in the provided user image and apply the makeup product from the description.
-            Product Category: ${product.category}.
-            Product Name: ${product.makeupName}.
-            Color/Shade: ${product.hexColor || 'natural'}.
-            Requirements: The application must look professional, realistic, and match the original lighting of the user photo.
-            Return only the modified image.
-        `;
+        const publicId = uploadResponse.public_id;
+        const cleanHex = (hexColor || product.hexColor || '#ff0000').replace('#', '');
 
-        // שליחת הבקשה ל-Gemini
-        // הערה: בשימוש אמיתי ב-SDK יש להמיר את ה-URL ל-InlineData או להשתמש ב-File API של גוגל
-        const result = await model.generateContent([prompt, userImageUrl]);
-        const response = await result.response;
+        // 2. יצירת טרנספורמציה חכמה (Generative Recolor)
+        // הקוד הזה אומר ל-Cloudinary: "תמצא את השפתיים/פנים ותצבע אותן ב-Hex שנבחר"
+        const prompt = product.category === 'Lipstick' ? 'lips' : 'face cheeks';
         
+        const resultUrl = cloudinary.url(publicId, {
+            transformation: [
+                { effect: `gen_recolor:prompt_${prompt};to_color_${cleanHex}` },
+                { quality: "auto", fetch_format: "auto" }
+            ]
+        });
+
         res.json({
             success: true,
-            message: "Virtual try-on completed",
-            resultImageUrl: response.text() // כאן יחזור ה-URL או ה-Base64 של התמונה החדשה
+            message: "Virtual try-on generated successfully",
+            transformedImage: resultUrl // זו התמונה הסופית שה-Frontend יציג!
         });
+
     } catch (error) {
-        return next(new AppError('AI processing failed: ' + error.message, 500));
+        console.error("Cloudinary/AI Error:", error);
+        return next(new AppError('נכשלו עיבוד התמונה והחלפת הצבע', 500));
     }
 });

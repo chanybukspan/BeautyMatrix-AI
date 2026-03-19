@@ -13,7 +13,7 @@ import userRouter from './routes/user.js';
 import productRouter from './routes/product.js';
 import orderRouter from './routes/order.js';
 import aiRouter from './routes/ai.js';
-import { errorMiddleware } from "./middlewares/errorMiddleware.js";
+import { errorMiddleware } from "../middlewares/errorMiddleware.js";
 
 // Import Socket Logic
 import { setupSocket } from './socket/socketHandler.js'; 
@@ -44,7 +44,7 @@ const limiter = rateLimit({
 
 // 3. Global Middlewares
 app.use(cors());
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use('/api', limiter); // החלת הגבלת בקשות על כל ה-API
 
 // 4. Routes

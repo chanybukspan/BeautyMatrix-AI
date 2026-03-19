@@ -107,10 +107,8 @@ const MakeupScanner = () => {
       setError("אנא בחרי קובץ תמונה חוקי");
       return;
     }
-
     setIsLoading(true);
     setError(null);
-
     try {
       const compressedDataUrl = await compressImage(file);
       setBase64Image(compressedDataUrl.split(',')[1]);
@@ -124,10 +122,8 @@ const MakeupScanner = () => {
 
   const analyzeSymmetry = useCallback(async () => {
     if (!base64Image) return;
-
     setIsLoading(true);
     setError(null);
-
     const selectedAreas = Object.keys(analysisAreas)
       .filter(key => analysisAreas[key])
       .map(key => areaMap[key]).join(', ');
@@ -135,12 +131,12 @@ const MakeupScanner = () => {
     const payload = {
       contents: [{
         parts: [
-          { text: `Analyze makeup symmetry for: ${selectedAreas} in Hebrew. Return a detailed markdown report.` },
+          { text: `Analyze makeup symmetry for: ${selectedAreas} in Hebrew.` },
           { inlineData: { mimeType: "image/jpeg", data: base64Image } }
         ]
       }],
       systemInstruction: {
-        parts: [{ text: "You are a professional makeup artist AI. Analyze the image provided and give constructive feedback in Hebrew." }]
+        parts: [{ text: "You are a professional makeup artist AI. Provide a score 1-10." }]
       }
     };
 
@@ -151,10 +147,9 @@ const MakeupScanner = () => {
         body: JSON.stringify(payload)
       });
       const result = await response.json();
-      if (result.error) throw new Error(result.error.message);
       setAnalysisResult(result.candidates?.[0]?.content?.parts?.[0]?.text || "לא התקבלה תוצאה");
     } catch (err) {
-      setError(`שגיאה בחיבור לשרת ה-AI: ${err.message}`);
+      setError(`שגיאה בחיבור לשרת: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -163,53 +158,30 @@ const MakeupScanner = () => {
   if (showSplash) return <SplashScreen />;
 
   return (
-    <div className="app-container">
-      <header>
-        <h1>BEAUTY AI MATRIX</h1>
-      </header>
-
+    <div className="makeup-scanner-container">
+      <header><h1>BEAUTY AI MATRIX</h1></header>
       <main className="main-content-layout">
         <section className="card">
           <div className="checkbox-group">
             {Object.keys(areaMap).map(area => (
               <label key={area} className="checkbox-label">
-                <input 
-                  type="checkbox" 
-                  checked={analysisAreas[area]} 
-                  onChange={() => setAnalysisAreas(p => ({ ...p, [area]: !p[area] }))} 
-                />
+                <input type="checkbox" checked={analysisAreas[area]} onChange={() => setAnalysisAreas(p => ({ ...p, [area]: !p[area] }))} />
                 <span>{areaMap[area]}</span>
               </label>
             ))}
           </div>
-
           <div className="upload-box">
-            <input 
-              type="file" 
-              onChange={handleImageUpload} 
-              id="image-upload" 
-              className="sr-only" 
-              ref={fileInputRef}
-            />
+            <input type="file" onChange={handleImageUpload} id="image-upload" className="sr-only" ref={fileInputRef} />
             <label htmlFor="image-upload" className="upload-label">
-              {base64Image ? "התמונה נשמרה במערכת" : "העלי תמונת פנים"}
+              {base64Image ? "התמונה מוכנה" : "העלי תמונה"}
             </label>
-            <button 
-              onClick={analyzeSymmetry} 
-              className="analyze-button" 
-              disabled={isLoading || !base64Image}
-            >
+            <button onClick={analyzeSymmetry} className="analyze-button" disabled={isLoading || !base64Image}>
               {isLoading ? loadingMessage : "הפעלת ניתוח"}
             </button>
           </div>
-          {error && <p className="error-message" style={{color: '#ff4d4d'}}>{error}</p>}
+          {error && <p className="error-message">{error}</p>}
         </section>
-
-        {analysisResult && (
-          <section className="card result-section" ref={resultsRef}>
-            {renderMarkdown(analysisResult)}
-          </section>
-        )}
+        {analysisResult && <section className="card result-section" ref={resultsRef}>{renderMarkdown(analysisResult)}</section>}
       </main>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3003', { transports: ['websocket'] });
+const socket = io('http://localhost:3000', { transports: ['websocket'] });
 
 // פונקציה ליצירת roomId חדש
 const generateRoomId = () => `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

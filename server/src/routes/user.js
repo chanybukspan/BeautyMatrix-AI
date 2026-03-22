@@ -5,7 +5,7 @@ import {
     getAllUsers, 
     getCurrentUser 
 } from "../controllers/user.js";
-import { protect, adminOnly } from '../middlewares/auth.js';
+import { protect,adminOnly } from '../middlewares/auth.js';
 import { validate } from '../middlewares/validationMiddleware.js';
 import { registerSchema, loginSchema } from '../validators/userValidator.js';
 

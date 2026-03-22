@@ -32,7 +32,7 @@ const io = new Server(server, {
 
 // Root handler
 app.get('/', (req, res) => {
-    res.send('Chat Server is running on port 3001. Connect via Socket.io from http://localhost:5173');
+    res.send('Chat Server is running on port 3000. Connect via Socket.io from http://localhost:3000');
 });
 
 const activeChats = new Map();
@@ -82,7 +82,7 @@ async function sendAgentEmail(roomId) {
                 <h2>שלום ${name}!</h2>
                 <p>יש לקוח שמחכה לעזרה בצ'אט.</p>
                 <p><strong>מספר חדר: ${roomId}</strong></p>
-                <a href="http://localhost:5173/agent/${roomId}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                <a href="http://localhost:3000/agent/${roomId}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
                     לחץ כאן להצטרפות לצ'אט
                 </a>
             `

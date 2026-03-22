@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
 // חשוב: הגדרת הסוקט מחוץ לקומפוננטה מונעת חיבורים כפולים ברינדורים
-const socket = io('http://localhost:3001', { 
+const socket = io('http://localhost:3000', { 
     transports: ['websocket'],
     autoConnect: true 
 });

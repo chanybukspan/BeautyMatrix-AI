@@ -2,8 +2,8 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { marked } from 'marked';
 import './MakeupScanner.css';
 
-const apiKey = "AIzaSyBLlMZuAZX0J06uOkrz-kzbLVJs2EG2KHU";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+//const apiKey = "AIzaSyBLlMZuAZX0J06uOkrz-kzbLVJs2EG2KHU";
+const GEMINI_API_URL = "http://localhost:3000/api/ai/analyze";
 
 const compressImage = (file, maxWidth = 800, quality = 0.7) => {
   return new Promise((resolve) => {

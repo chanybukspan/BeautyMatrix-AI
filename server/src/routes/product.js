@@ -6,7 +6,7 @@ import {
     updateProduct, 
     deleteById 
 } from '../controllers/product.js';
-import { protect, adminOnly } from '../middlewares/auth.js';
+import { protect,adminOnly } from '../middlewares/auth.js';
 import { validate } from '../middlewares/validationMiddleware.js';
 import { productSchema } from '../validators/productValidator.js';
 

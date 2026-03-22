@@ -13,7 +13,7 @@ import userRouter from './routes/user.js';
 import productRouter from './routes/product.js';
 import orderRouter from './routes/order.js';
 import aiRouter from './routes/ai.js';
-import { errorMiddleware } from "../middlewares/errorMiddleware.js";
+import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 
 // Import Socket Logic
 import { setupSocket } from './socket/socketHandler.js'; 
